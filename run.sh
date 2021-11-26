@@ -25,5 +25,3 @@ acme.sh --install-cert -d www.springcloud.tk   \
 mv /etc/nginx/conf/conf.d/web.conf /etc/nginx/conf/conf.d/${DOMAIN}.conf
 mv /etc/nginx/conf/conf.d/default.conf /etc/nginx/conf/conf.d/default.conf.bak
 
-
-nginx -g 'daemon off;'
