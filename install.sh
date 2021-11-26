@@ -45,6 +45,7 @@ apt -y install traceroute
 pauseErr
 # bbr
 echo 'bbr 脚本'
+cd ~
 wget -O tcp.sh "https://git.io/coolspeeda" && chmod +x tcp.sh 
 
 
