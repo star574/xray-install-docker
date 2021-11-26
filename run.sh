@@ -1,4 +1,5 @@
 #!/bin/bash
+yum update && yun install -y bash git curl sh
 # xray
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u root \
     && bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install --without-geodata \
