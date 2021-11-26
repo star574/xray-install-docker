@@ -1,4 +1,4 @@
-FROM nginx
+FROM debain
 LABEL author=star574
 WORKDIR /root/
 ENV DOMAIN ""

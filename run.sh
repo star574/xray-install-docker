@@ -1,5 +1,6 @@
 #!/bin/bash
-apt update && apt -y install bash git curl sh
+apt update && apt -y install git nginx
+
 # xray
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u root \
     && bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install --without-geodata \
@@ -24,4 +25,3 @@ acme.sh --install-cert -d www.springcloud.tk   \
 # etc
 mv /etc/nginx/conf/conf.d/web.conf /etc/nginx/conf/conf.d/${DOMAIN}.conf
 mv /etc/nginx/conf/conf.d/default.conf /etc/nginx/conf/conf.d/default.conf.bak
-
