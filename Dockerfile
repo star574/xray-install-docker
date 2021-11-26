@@ -13,4 +13,4 @@ VOLUME  /usr/share/nginx/html
 VOLUME  /usr/share/nginx/logs
 EXPOSE 80
 EXPOSE 443
-CMD ./run.sh
+CMD chmod +x run.sh && run.sh
