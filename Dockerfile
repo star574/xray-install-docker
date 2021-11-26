@@ -1,4 +1,4 @@
-FROM debain
+FROM debian
 LABEL author=star574
 WORKDIR /root/
 ENV DOMAIN ""
