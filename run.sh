@@ -1,10 +1,10 @@
 #!/bin/bash
 DOMAIN=$1
 UUID=$2
-PATH=$3
+P=$3
 echo "域名："$DOMAIN
 echo "id："$UUID
-echo "路径："$PATH
+echo "路径："$P
 echo '回车确定：'
 read -s -n 1 key
 if [[ $key = "" ]]; then 
@@ -16,7 +16,7 @@ fi
 
 echo '安装依赖'
 echo "source /etc/profile" >> ~/.bashrc
-apt update && apt -y upgrade apt -y install git nginx curl apt-utils cron wget
+apt update && apt -y upgrade && apt -y install git curl apt-utils cron wget
 
 echo 'speedtest'
 # speedtest
@@ -38,8 +38,8 @@ wget -O tcp.sh "https://git.io/coolspeeda" && chmod +x tcp.sh
 
 # docker
 echo '安装docker'
-apt remove docker docker-engine docker.io containerd runc
-apt update
+apt -y remove docker docker-engine docker.io containerd runc
+apt -y update
 apt -y install \
     apt-transport-https \
     ca-certificates \
@@ -59,8 +59,8 @@ systemctl enable --now docker
 
 echo '部署 xray'
 # xray
-mkdir -p /docker/xray && touch /docker/xray/config.json
-cat <<EOF > /dokcer/xray/config.json
+mkdir -p /docker/xray
+cat > /dokcer/xray/config.json <<EOF
 {
     "log": {
         "loglevel": "warning"
@@ -152,8 +152,8 @@ echo 'nginx 已部署完成'
 
 echo '获取伪装网站'
 # html
-git clone https://github.com/star574/camouflage_html.git \
-mv camouflage_html/* /docker/nginx/html/ \
+git clone https://github.com/star574/camouflage_html.git
+mv camouflage_html/* /docker/nginx/html/
 rm -rf camouflage_html
 
 
@@ -161,14 +161,16 @@ rm -rf camouflage_html
 echo '为' ${DOMAIN} '申请证书'
 # acme.sh ssl
 curl  https://get.acme.sh | sh -s email=my@example.com
+
 source ~/.bashrc
+
 mkdir -p  /etc/nginx/conf/ssl/${DOMAIN}
 
-acme.sh  --issue  -d ${DOMAIN} --webroot  /docker/nginx/html/
+~/.acme.sh/acme.sh  --issue  -d ${DOMAIN} --webroot  /docker/nginx/html/
 
 
-mkdir  -p /docker/nginx/conf/ssl/
-acme.sh --install-cert -d ${DOMAIN}   \
+mkdir  -p  /docker/nginx/conf/ssl/
+~/.acme.sh/acme.sh --install-cert -d ${DOMAIN}   \
 --key-file       /docker/nginx/conf/ssl/${DOMAIN}/${DOMAIN}.key  \
 --fullchain-file /docker/nginx/conf/ssl/${DOMAIN}/fullchain.pem \
 --reloadcmd   "docker restart nginx"
@@ -176,7 +178,7 @@ acme.sh --install-cert -d ${DOMAIN}   \
 echo '证书' ${DOMAIN}_key '部署成功'
 
 touch /docker/nginx/conf/conf.d/${DOMAIN}.conf
-cat <<EOF > /docker/nginx/conf/conf.d\${DOMAIN}.conf
+cat > /docker/nginx/conf/conf.d\${DOMAIN}.conf <<EOF
 server {
     listen      443 ssl;
     listen  [::]:443 ssl;
