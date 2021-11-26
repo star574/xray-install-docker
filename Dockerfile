@@ -13,6 +13,7 @@ VOLUME  /usr/share/nginx/html
 VOLUME  /usr/share/nginx/logs
 EXPOSE 80
 EXPOSE 443
+RUN echo "source /etc/profile" >> ~/.bashrc
 RUN echo $PATH
 RUN /bin/bash ./run.sh
 CMD nginx -g 'daemon off;'
