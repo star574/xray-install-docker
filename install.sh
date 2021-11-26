@@ -13,11 +13,21 @@ else
     echo "You pressed '$key'"
     exit 1
 fi
-
+function pauseErr(){
+    if [ $? -ne 0 ];then
+        echo "pause because of failed ; Ctrl + C to exit"
+        #沉睡100秒，以便查看异常信息
+        sleep 100
+        #当调用者使用Ctrl + C打断沉睡之后，直接退出脚本，阻止脚本向下执行
+        exit
+    fi
+}
+rm -rf /docker/nginx
+rm -rf /docker/xray
 echo '安装依赖'
 echo "source /etc/profile" >> ~/.bashrc
 apt update && apt -y upgrade && apt -y install git curl apt-utils cron wget
-
+pauseErr
 echo 'speedtest'
 # speedtest
 apt -y install python python3 
@@ -27,15 +37,18 @@ chmod a+rx speedtest.py
 mv speedtest.py /usr/local/bin/speedtest
 chown root:root /usr/local/bin/speedtest
 
+pauseErr
 # traceroute 
 echo 'traceroute'
 apt -y install traceroute
 
+pauseErr
 # bbr
 echo 'bbr 脚本'
 wget -O tcp.sh "https://git.io/coolspeeda" && chmod +x tcp.sh 
 
 
+pauseErr
 # docker
 echo '安装docker'
 apt -y remove docker docker-engine docker.io containerd runc
@@ -47,20 +60,23 @@ apt -y install \
     gnupg \
     lsb-release
 
+pauseErr
 curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-
+pauseErr
 echo \
   "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \
   $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-
+pauseErr
 apt-get update
 apt-get install docker-ce docker-ce-cli containerd.io
 systemctl enable --now docker
-
+pauseErr
 echo '部署 xray'
 # xray
-mkdir -p /docker/xray
-cat > /dokcer/xray/config.json <<EOF
+docker rm -f nginx
+docker rm -f xray
+mkdir -p /docker/xray/
+cat <<EOF >  /docker/xray/config.json
 {
     "log": {
         "loglevel": "warning"
@@ -87,7 +103,7 @@ cat > /dokcer/xray/config.json <<EOF
             "settings": {
                 "clients": [
                     {
-                        "id": "\$UUID"
+                        "id": "$UUID"
                     }
                 ],
                 "decryption": "none"
@@ -96,7 +112,7 @@ cat > /dokcer/xray/config.json <<EOF
                 "network": "ws",
                 "security": "none",
                 "wsSettings": {
-                    "path": "/\$PATH"
+                    "path": "/$P"
                 }
             }
         }
@@ -124,6 +140,7 @@ docker run -d -p 9000:9000 --name xray --restart=always -v /docker/xray:/etc/xra
 
 echo 'xray 已部署完成'
 
+pauseErr
 
 echo '部署 nginx'
 
@@ -149,6 +166,7 @@ docker run -p 80:80 -p 443:443 --link xray:xray --name nginx --restart=always \
 
 echo 'nginx 已部署完成'
 
+pauseErr
 
 echo '获取伪装网站'
 # html
@@ -156,59 +174,59 @@ git clone https://github.com/star574/camouflage_html.git
 mv camouflage_html/* /docker/nginx/html/
 rm -rf camouflage_html
 
-
+pauseErr
 
 echo '为' ${DOMAIN} '申请证书'
 # acme.sh ssl
 curl  https://get.acme.sh | sh -s email=my@example.com
 
+pauseErr
 source ~/.bashrc
 
 mkdir -p  /etc/nginx/conf/ssl/${DOMAIN}
 
+pauseErr
 ~/.acme.sh/acme.sh  --issue  -d ${DOMAIN} --webroot  /docker/nginx/html/
 
-
-mkdir  -p  /docker/nginx/conf/ssl/
+mkdir -p  /docker/nginx/conf/ssl/${DOMAIN}/
 ~/.acme.sh/acme.sh --install-cert -d ${DOMAIN}   \
 --key-file       /docker/nginx/conf/ssl/${DOMAIN}/${DOMAIN}.key  \
 --fullchain-file /docker/nginx/conf/ssl/${DOMAIN}/fullchain.pem \
 --reloadcmd   "docker restart nginx"
-
+pauseErr
 echo '证书' ${DOMAIN}_key '部署成功'
-
 touch /docker/nginx/conf/conf.d/${DOMAIN}.conf
-cat > /docker/nginx/conf/conf.d\${DOMAIN}.conf <<EOF
+cat <<EOF > /docker/nginx/conf/conf.d/${DOMAIN}.conf
 server {
     listen      443 ssl;
     listen  [::]:443 ssl;
-    server_name  \${DOMAIN};
+    server_name  ${DOMAIN};
 	
 	root   /usr/share/nginx/html;
 	index  index.html index.htm;
 	
-	ssl_certificate      /etc/nginx/ssl/\${DOMAIN}/fullchain.pem;
-	ssl_certificate_key  /etc/nginx/ssl/\${DOMAIN}/\${DOMAIN}.key;
+	ssl_certificate      /etc/nginx/ssl/${DOMAIN}/fullchain.pem;
+	ssl_certificate_key  /etc/nginx/ssl/${DOMAIN}/${DOMAIN}.key;
 	ssl_protocols TLSv1.1 TLSv1.2;
 	ssl_session_timeout  5m;
 	ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:HIGH:!aNULL:!MD5:!RC4:!DHE;
 	ssl_prefer_server_ciphers  on;
-	location  /\${PATH} {
-      	if ($http_upgrade = "websocket") {
+	location  /${P} {
+      	if (\$http_upgrade = "websocket") {
       	  	proxy_pass http://xray:9000;
       	}
       	# 仅当请求为 WebSocket 时才反代到 V2Ray
-      	if ($http_upgrade != "websocket") {
+      	if (\$http_upgrade != "websocket") {
       	 #否则显示正常网页
 	      	rewrite ^/(.*)$ /index.html last;
       	}
       	proxy_redirect off;
       	proxy_http_version 1.1;
-      	proxy_set_header Upgrade $http_upgrade;
+      	proxy_set_header Upgrade \$http_upgrade;
       	proxy_set_header Connection "upgrade";
-      	proxy_set_header Host $http_host;
-      	proxy_set_header X-Real-IP $remote_addr;
-      	proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      	proxy_set_header Host \$http_host;
+      	proxy_set_header X-Real-IP \$remote_addr;
+      	proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
 	}
 
   location = /50x.html {
@@ -217,13 +235,15 @@ server {
 }
 server {
 	 listen 80;
-	 server_name www.springboot.ml;  
-	 rewrite ^(.*)$ https://$host$1 permanent;
+	 server_name ${DOMAIN};  
+	 rewrite ^(.*)$ https://\$host\$1 permanent;
 	 location / {
 	    index index.html index.htm;
 	  }
 }
 EOF
+
+pauseErr
 
 echo '同步时间'
 systemctl stop ntp.service 
@@ -241,5 +261,5 @@ mv /docker/nginx/conf/conf.d/default.conf /docker/nginx/conf/conf.d/default.conf
 
 echo '重启docker'
 docker restart $(docker ps -qa)
-
+pauseErr
 echo '全部应用部署完成！'
