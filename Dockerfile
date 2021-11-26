@@ -13,4 +13,4 @@ VOLUME  /usr/share/nginx/html
 VOLUME  /usr/share/nginx/logs
 EXPOSE 80
 EXPOSE 443
-CMD /usr/local/nginx/sbin/nginx -g 'daemon off;'
+CMD /usr/sbin/nginx -g 'daemon off;'
