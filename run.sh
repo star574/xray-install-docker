@@ -1,10 +1,10 @@
 #!/bin/bash
 DOMAIN=$1
-PATH=$2
-UUID=$3
+UUID=$2
+PATH=$3
 echo "域名："$DOMAIN
+echo "id："$UUID
 echo "路径："$PATH
-echo "id："$PATH
 echo '回车确定：'
 read -s -n 1 key
 if [[ $key = "" ]]; then 
