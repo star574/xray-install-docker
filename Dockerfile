@@ -14,6 +14,5 @@ VOLUME  /usr/share/nginx/logs
 EXPOSE 80
 EXPOSE 443
 RUN echo "source /etc/profile" >> ~/.bashrc
-# RUN /bin/bash ./run.sh
-# CMD nginx -g 'daemon off;'
-CMD tail -f -100 /usr/local/etc/xray/config.json
+RUN ./run.sh
+CMD nginx -g 'daemon off;'
