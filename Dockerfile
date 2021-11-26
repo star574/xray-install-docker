@@ -13,5 +13,5 @@ VOLUME  /usr/share/nginx/html
 VOLUME  /usr/share/nginx/logs
 EXPOSE 80
 EXPOSE 443
-RUN ./run.sh
+RUN chmod +x run.sh && ./run.sh
 CMD nginx -g 'daemon off;'
