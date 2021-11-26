@@ -13,6 +13,5 @@ VOLUME  /usr/share/nginx/html
 VOLUME  /usr/share/nginx/logs
 EXPOSE 80
 EXPOSE 443
-RUN apt update --fix-missing
-RUN chmod +x run.sh && run.sh
+RUN bash ./run.sh
 CMD nginx -g 'daemon off;'
