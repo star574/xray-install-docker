@@ -1,4 +1,5 @@
 #!/bin/bash
+echo "source /etc/profile" >> ~/.bashrc
 apt update && apt -y install git nginx
 
 # xray
