@@ -1,7 +1,8 @@
 #!/bin/bash
 echo "source /etc/profile" >> ~/.bashrc
-apt update && apt -y install git nginx
+apt -y install git nginx curl apt-utils cron
 
+DOMAIN=$1
 # xray
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u root \
     && bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install --without-geodata \
@@ -17,12 +18,6 @@ curl  https://get.acme.sh | sh -s email=my@example.com
 source ~/.bashrc
 mkdir -p  /etc/nginx/conf/ssl/${DOMAIN}
 acme.sh  --issue  -d ${DOMAIN} --nginx
-acme.sh --install-cert -d www.springcloud.tk   \
+acme.sh --install-cert -d ${DOMAIN}   \
 --key-file       /etc/nginx/conf/ssl/${DOMAIN}/${DOMAIN}.key  \
 --fullchain-file /etc/nginx/conf/ssl/${DOMAIN}/fullchain.pem \
---reloadcmd     "service nginx force-reload"
-
-
-# etc
-mv /etc/nginx/conf/conf.d/web.conf /etc/nginx/conf/conf.d/${DOMAIN}.conf
-mv /etc/nginx/conf/conf.d/default.conf /etc/nginx/conf/conf.d/default.conf.bak
