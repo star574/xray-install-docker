@@ -3,7 +3,7 @@ DOMAIN=$1
 UUID=$2
 P=$3
 echo "域名："$DOMAIN
-echo "id："$UUID
+echo "uuid："$UUID
 echo "路径："$P
 echo '回车确定：'
 read -s -n 1 key
