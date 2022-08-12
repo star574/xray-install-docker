@@ -159,7 +159,7 @@ cat <<EOF >  /docker/xray/config.json
 }
 EOF
 
-docker run -d -p 9000:9000 --name xray --restart=always -v /docker/xray:/etc/xray teddysun/xray
+docker run -d -p 9000:9000 -e TZ=Asia/Shanghai --name xray --restart=always -v /docker/xray:/etc/xray teddysun/xray
 
 echo 'xray 已部署完成'
 
@@ -181,7 +181,7 @@ rm -rf  /docker/nginx/conf/nginx
 docker rm -f nginx
 
 # 部署nginx
-docker run -p 80:80 -p 443:443 --link xray:xray --name nginx --restart=always \
+docker run -p 80:80 -p 443:443 --link xray:xray -e TZ=Asia/Shanghai --name nginx --restart=always \
 -v /docker/nginx/html:/usr/share/nginx/html \
 -v /docker/nginx/logs:/var/log/nginx \
 -v /docker/nginx/conf:/etc/nginx \
